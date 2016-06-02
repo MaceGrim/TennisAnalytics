@@ -34,11 +34,11 @@ def parseMatch(string):
         player1 = stringParts[1] + " " + stringParts[0]
         if len(stringParts) == 7:
             player2 = stringParts[3] + " " + stringParts[2][5:]
-            setResult = stringParts[4][5] + ":" + stringParts[6]
+            setTotal = int(stringParts[4][5]) + int(stringParts[6])
         else:
             player2 = stringParts[4] + " " + stringParts[2][5:] + " " + stringParts[3]
-            setResult = stringParts[5][5] + ":" + stringParts[7]
-        return [dateString, player1, player2, setResult]
+            setTotal = int(stringParts[5][5]) + int(stringParts[7])
+        return [dateString, player1, player2, setTotal]
     else:
         return None
     
@@ -47,13 +47,10 @@ def parseMatch(string):
 Parser for flashscore URL's given by DataMiner chrome addon
 input: match specific link in the form of: IcKE2Ah8
 output: URL that will take you to that page
-
-
-NOTE: The default set in a match is notated by a 1 on the end of the string, change this to go to different matches (2 = set 2 and so on)
 """
 def parseURL(string):
     httpString = "http://www.flashscore.com/match/"
-    endString = "/#point-by-point;1"
+    endString = "/#point-by-point;"
     url = string[4:]
     return httpString + url + endString
     
@@ -68,10 +65,11 @@ eg. r"file_location"
 """
 def clean_flashscore(excel_file_location, new_file_name):
     data = pd.read_excel(excel_file_location)
+    print (data)
     matches = data["Match Data"]
     urls = data["URL"]
     
-    cleaned_matches = pd.DataFrame(columns = ['Date', 'Player 1', 'Player 2', 'Result'])
+    cleaned_matches = pd.DataFrame(columns = ['Date', 'Player 1', 'Player 2', 'Amount of Sets'])
     cleaned_urls = pd.Series(name = "URLS")
     cleaned_urls.rename("URLS")    
     
@@ -86,12 +84,31 @@ def clean_flashscore(excel_file_location, new_file_name):
         
     cleaned_matches["URLS"] = cleaned_urls
     
-    cleaned_matches.to_excel(new_file_name + ".xlsx")
-        
-        
-clean_flashscore(r"C:\Users\Mason\Desktop\Tennis Internship\flashscore_links\Djokovic.xlsx", "Djokovic_Cleaned")
-
+    # cleaned_matches.to_excel(new_file_name + ".xlsx")
 
     
+
     
+def clean_flashscore1(excel_file_location, new_file_name):
+    data = pd.read_excel(excel_file_location)
+    outData = pd.DataFrame(columns = ['Date', 'Player 1', 'Player 2', 'Amount of Sets', "URL"])
     
+    i = 0
+    # For each element in first_name and last_name,
+    for match, url in zip(data['Link'], data['URL']):
+    # Change the value of the i'th row in full_name
+    # to the combination of the first and last name
+        cleaned_match = parseMatch(match)
+        if cleaned_match != None:
+            cleaned_url = parseURL(url)
+            cleaned_match.append(cleaned_url)
+            outData.loc[len(outData)] = cleaned_match
+            i = i+1
+    print (outData)
+    
+    outData.to_excel("Djokovic_Cleaned_Fixed.xlsx")
+    
+clean_flashscore1(r"C:\Users\Mason\Desktop\Tennis Internship\flashscore_links\Djokovic.xlsx", "Djokovic_Cleaned")
+
+
+
